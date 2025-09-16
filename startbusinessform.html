@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Online Advertising</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --warm-a:#ff7e5f; --warm-b:#ff5ea3; --warm-c:#ff9966;
+    --bg1:#3a0e5a; --bg2:#1b0f3a;
+    --shadow:0 10px 28px rgba(16,24,40,.18);
+    --view:380ms cubic-bezier(.2,.8,.2,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.45 Manrope,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111;background:#f5f6fb;display:flex;justify-content:center}
+  .app{width:100%;max-width:480px;min-height:100dvh;background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%);position:relative;overflow:hidden}
+
+  /* Header */
+  .topbar{position:sticky;top:0;z-index:30;background:linear-gradient(135deg,var(--warm-a),var(--warm-b) 60%,var(--warm-c));color:#fff;display:flex;align-items:center;justify-content:center;padding:14px 16px;box-shadow:0 2px 20px rgba(255,126,95,.35)}
+  .brand{display:flex;gap:10px;align-items:center;font-weight:800}
+  .dot{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff 0 35%,#ffffff66 36%,transparent 45%);border:2px solid #ffffff80}
+
+  /* Views */
+  .views{position:relative;min-height:calc(100dvh - 68px);padding-bottom:98px}
+  .view{position:absolute;inset:0;padding:16px;transform:translateX(100%);transition:transform var(--view);overflow:hidden}
+  .view.active{transform:translateX(0)} .view.prev{transform:translateX(-100%)}
+
+  /* STEP 1 */
+  #step-clothes{overflow:auto; padding-bottom:140px;}
+  h1{color:#fff;margin:8px 4px 16px;font-size:30px;font-weight:800;text-shadow:0 6px 18px rgba(0,0,0,.25)}
+  .hint{color:#cbd5e1;font-size:13px;margin:-6px 4px 14px}
+  .grid{display:grid;gap:12px}
+  .pill{
+    display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:20px;
+    background:#ffffff14; backdrop-filter:blur(4px);
+    border:2px solid #ffffff24; box-shadow:inset 0 0 0 1px #ffffff0d, var(--shadow);
+    cursor:pointer; user-select:none; transition:transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .pill:active{transform:scale(.99)}
+  .pill .icon{width:72px;height:72px;border-radius:18px;display:grid;place-items:center;flex:0 0 72px}
+  .pill .icon img{width:52px;height:52px}
+  .pill .txt{font-weight:900;font-size:20px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.25)}
+  .pill[data-checked="true"]{border-color:#22c55e;box-shadow:inset 0 0 0 1px #22c55e29, 0 10px 26px rgba(34,197,94,.25)}
+
+  /* STEP 2 */
+  .bale-wrap{background:#ffffff10;border-radius:22px;padding:16px 14px;margin:8px 0 12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08), 0 10px 28px rgba(0,0,0,.28)}
+  .bale{display:grid;place-items:center}
+  .bale img{width:min(86%,440px);max-height:230px;object-fit:contain;filter:drop-shadow(0 16px 28px rgba(0,0,0,.35));transform:rotate(90deg)}
+  .sizes{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:12px}
+  .size{background:#fff;border-radius:14px;text-align:center;font-weight:900;cursor:pointer;border:2px solid transparent;box-shadow:var(--shadow)}
+  .size.small{grid-column:span 2;padding:12px 8px;font-size:18px;}
+  .size.large{grid-column:span 3;padding:16px 10px;font-size:22px;}
+  .size.sel{border-color:#22c55e;background:#ecfff5}
+
+  /* CTA */
+  .cta{position:fixed;left:0;right:0;bottom:10px;display:flex;justify-content:center;z-index:25}
+  .cta button{width:min(440px,92vw);padding:16px 20px;border-radius:999px;border:0;color:#fff;font-weight:900;letter-spacing:.02em;background:linear-gradient(135deg,var(--warm-a),var(--warm-b) 60%,var(--warm-c));box-shadow:0 12px 24px rgba(255,126,95,.28)}
+  .cta button:disabled{opacity:.5;filter:grayscale(.2);box-shadow:none}
+
+  /* Slide-up Form */
+  .sheet{position:fixed;inset:0;z-index:40;display:grid;align-items:end;background:transparent;pointer-events:none}
+  .sheet.open{background:rgba(10,14,22,.5);pointer-events:auto}
+  .panel{width:100%;max-width:480px;margin:0 auto;border-radius:22px 22px 0 0;background:linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,.92));backdrop-filter:blur(10px);box-shadow:0 -18px 48px rgba(0,0,0,.28);padding:16px 14px 18px;transform:translateY(110%);transition:transform 360ms cubic-bezier(.2,.8,.2,1)}
+  .sheet.open .panel{transform:translateY(0)}
+  .panel h3{margin:2px 2px 10px;font-weight:900;color:#111}
+  .field{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:10px}
+  .field input{width:100%;border:0;outline:none;font:800 17px Manrope;color:#0f172a}
+  .row-actions{display:flex;gap:10px;justify-content:center}
+  .btn{padding:14px 16px;border-radius:12px;border:0;font-weight:800;cursor:pointer}
+  .btn.secondary{background:#eef2f7}
+  .btn.primary{background:linear-gradient(135deg,var(--warm-a),var(--warm-b) 60%,var(--warm-c));color:#fff;box-shadow:0 10px 22px rgba(255,126,95,.25)}
+
+  /* Success modal + PERFECT checkmark */
+  .receipt{position:fixed;inset:0;display:grid;place-items:center;background:rgba(10,14,22,.55);visibility:hidden;opacity:0;transition:opacity .25s;z-index:50}
+  .receipt.open{visibility:visible;opacity:1}
+  .card{width:min(440px,92vw);background:#fff;border-radius:20px;padding:22px 18px;box-shadow:0 22px 60px rgba(0,0,0,.3);transform:translateY(12px);opacity:.95;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s}
+  .receipt.open .card{transform:translateY(0);opacity:1}
+  .checkWrap{display:grid;place-items:center;margin-bottom:12px}
+  .checkSvg{width:100px;height:100px;display:block;filter:drop-shadow(0 10px 20px rgba(255,126,95,.25));animation:pop .25s ease-out}
+  @keyframes pop{from{transform:scale(.9);opacity:.6} to{transform:scale(1);opacity:1}}
+  .disc{fill:url(#grad)}
+  .ring{fill:none;stroke:url(#grad);stroke-width:6;opacity:.35}
+  .tick{fill:none;stroke:#fff;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;/* dash set from JS */}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span>Online Advertising</div>
+  </header>
+
+  <main class="views">
+    <!-- STEP 1 -->
+    <section class="view active" id="step-clothes">
+      <h1>Select clothing</h1>
+      <p class="hint">Choose one or more categories</p>
+      <div class="grid" id="clothesList"></div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="view" id="step-bale">
+      <h1>Choose a bale</h1>
+      <div class="bale-wrap">
+        <div class="bale">
+          <img src="https://i.ibb.co/5WXrVgf4/3.png" alt="Bale">
+        </div>
+        <div class="sizes" id="sizes"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom CTA -->
+  <div class="cta"><button id="nextBtn" disabled>Next</button></div>
+
+  <!-- Slide-up Form on step 2 -->
+  <div class="sheet" id="sheet">
+    <div class="panel">
+      <h3>Enter details</h3>
+      <div class="field"><input id="name" placeholder="Name" autocomplete="name"></div>
+      <div class="field"><input id="email" placeholder="Email" autocomplete="email"></div>
+      <div class="row-actions">
+        <button class="btn secondary" id="closeSheet">Close</button>
+        <button class="btn primary" id="submitBtn" disabled>Get Insights</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success -->
+  <div class="receipt" id="done">
+    <div class="card">
+      <div class="checkWrap" id="checkWrap">
+        <!-- SVG вставляется из JS при показе для гарантированного рестарта анимации -->
+      </div>
+      <p style="text-align:center;font-weight:900;margin:4px 0 14px">All set!</p>
+      <div class="row-actions" style="justify-content:center">
+        <button class="btn secondary" id="closeDone">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- DATA ---------- */
+const CLOTHES = [
+  { id:'men-outer',    label:"Men's outerwear",    tone:'#ff6b6b', icon:'https://cdn-icons-png.flaticon.com/128/17191/17191505.png' },
+  { id:'women-outer',  label:"Women\'s outerwear", tone:'#3ab4ff', icon:'https://cdn-icons-png.flaticon.com/128/13509/13509934.png' },
+  { id:'swim',         label:"Swimwear",           tone:'#16c79a', icon:'https://cdn-icons-png.flaticon.com/128/5138/5138569.png' },
+  { id:'women-shoes',  label:"Women\'s shoes",     tone:'#ff6fa3', icon:'https://cdn-icons-png.flaticon.com/128/13103/13103202.png' },
+  { id:'men-shoes',    label:"Men\'s shoes",       tone:'#b08968', icon:'https://cdn-icons-png.flaticon.com/128/1057/1057348.png' },
+  { id:'men-clothes',  label:"Men\'s clothing",    tone:'#60a5fa', icon:'https://cdn-icons-png.flaticon.com/128/682/682914.png' },
+  { id:'women-clothes',label:"Women\'s clothing",  tone:'#f472b6', icon:'https://cdn-icons-png.flaticon.com/128/1785/1785388.png' },
+  { id:'kids',         label:"Kids\' clothing",    tone:'#fb923c', icon:'https://cdn-icons-png.flaticon.com/128/2123/2123076.png' },
+];
+const BALES = [
+  {label:'5 KG',  cls:'small'},
+  {label:'10 KG', cls:'small'},
+  {label:'15 KG', cls:'small'},
+  {label:'20 KG', cls:'large'},
+  {label:'50 KG', cls:'large'},
+];
+
+/* ---------- STATE ---------- */
+const state = { clothes: new Set(), size: null, step: 0, formOpen:false };
+
+/* ---------- HELPERS ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const nextBtn = $('#nextBtn');
+const sheet = $('#sheet');
+const submitBtn = $('#submitBtn');
+
+function setStep(n){
+  state.step = n;
+  ['#step-clothes','#step-bale'].forEach((sel,i)=>{
+    const el = $(sel);
+    el.classList.toggle('active', i===n);
+    el.classList.toggle('prev', i<n);
+  });
+  validate();
+}
+
+function validate(){
+  if(state.step===0) nextBtn.disabled = state.clothes.size===0;
+  if(state.step===1 && !state.formOpen) nextBtn.disabled = !state.size;
+  if(state.formOpen){
+    const nameOk = $('#name').value.trim().length>0;
+    const mailOk = $('#email').value.trim().length>0; // любой непустой ввод
+    submitBtn.disabled = !(nameOk && mailOk);
+  }
+}
+
+/* ---------- BUILD UI ---------- */
+// Step 1 pills
+const list = $('#clothesList');
+CLOTHES.forEach(item=>{
+  const pill = document.createElement('div');
+  pill.className = 'pill';
+  pill.style.background = `linear-gradient(135deg, ${item.tone}44, ${item.tone}22)`;
+  pill.style.borderColor = `${item.tone}55`;
+  pill.innerHTML = `<div class="icon" style="background:${item.tone}33"><img src="${item.icon}" alt=""></div><div class="txt">${item.label}</div>`;
+  pill.addEventListener('click', ()=>{
+    const checked = pill.getAttribute('data-checked')==='true';
+    pill.setAttribute('data-checked', String(!checked));
+    if(checked){ state.clothes.delete(item.id); } else { state.clothes.add(item.id); }
+    validate();
+  });
+  list.appendChild(pill);
+});
+
+// Step 2 sizes
+const sizes = $('#sizes');
+BALES.forEach(b=>{
+  const el = document.createElement('button');
+  el.type='button'; el.className=`size ${b.cls}`; el.textContent=b.label;
+  el.addEventListener('click', ()=>{
+    $$('.size.sel').forEach(x=>x.classList.remove('sel'));
+    el.classList.add('sel'); state.size=b.label; validate();
+  });
+  sizes.appendChild(el);
+});
+
+/* ---------- NAV ---------- */
+nextBtn.addEventListener('click', ()=>{
+  if(state.step===0){ setStep(1); return; }
+  if(state.step===1 && !state.formOpen){
+    state.formOpen = true;
+    sheet.classList.add('open');
+    validate();
+    return;
+  }
+});
+
+// close form
+$('#closeSheet').addEventListener('click', ()=>{
+  sheet.classList.remove('open'); state.formOpen=false; validate();
+});
+
+// inputs
+document.querySelectorAll('#name, #email').forEach(el=>el.addEventListener('input', validate));
+
+/* ---------- PERFECT Checkmark ---------- */
+function injectAndPlayCheck(){
+  // создаём SVG заново для чистого старта
+  const wrap = document.getElementById('checkWrap');
+  wrap.innerHTML = `
+    <svg class="checkSvg" viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ff7e5f"/><stop offset="0.6" stop-color="#ff5ea3"/><stop offset="1" stop-color="#ff9966"/>
+        </linearGradient>
+      </defs>
+      <circle class="disc" cx="60" cy="60" r="44"></circle>
+      <circle class="ring" cx="60" cy="60" r="50"></circle>
+      <path class="tick" id="tick" d="M36 62 L54 78 L88 42"></path>
+    </svg>
+  `;
+  const tick = document.getElementById('tick');
+  // корректная длина пути и плавная отрисовка
+  const L = tick.getTotalLength();
+  tick.style.strokeDasharray = L;
+  tick.style.strokeDashoffset = L;
+  tick.style.transition = 'stroke-dashoffset 620ms 180ms cubic-bezier(.2,.8,.2,1)';
+  // старт
+  requestAnimationFrame(()=>{ tick.style.strokeDashoffset = '0'; });
+}
+
+/* ---------- Submit ---------- */
+submitBtn.addEventListener('click', ()=>{
+  sheet.classList.remove('open');
+  state.formOpen=false;
+  document.getElementById('done').classList.add('open');
+  injectAndPlayCheck();
+});
+
+// close success
+$('#closeDone').addEventListener('click', ()=>document.getElementById('done').classList.remove('open'));
+
+/* init */
+setStep(0);
+</script>
+</body>
+</html>
